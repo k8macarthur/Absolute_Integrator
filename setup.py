@@ -34,7 +34,7 @@ setup(
     ],
     package_dir={'Absolute_Integrator': 'Absolute_Integrator'},
     include_package_data=True,
-    install_requires=["numpy", "automodinit",
+    install_requires=["numpy",
     ],
     license='MIT',
     zip_safe=False,
