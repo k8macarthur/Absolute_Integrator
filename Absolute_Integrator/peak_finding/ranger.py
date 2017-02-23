@@ -57,16 +57,16 @@ def fit_block(block, base_axis):
     log2 = np.log(v_profile)
 
     if len(A) != len(log1):
-        log1a = log1[:(len(A)-1)]
-        print('A', len(A))
-        print('log1a', len(log1a))
-        solution_h = np.linalg.lstsq(A, log1a)[0]
+        log1a = log1[:(len(A))]
+        Aa = A[:(len(log1))]
+        solution_h = np.linalg.lstsq(Aa, log1a)[0]
     else:
         solution_h = np.linalg.lstsq(A, log1)[0]
 
     if len(A) != len(log1):
-        log2a = log2[:(len(A)-1)]
-        solution_v = np.linalg.lstsq(A, log2a)[0]
+        log2a = log2[:(len(A))]
+        Aa = A[:(len(log2))]
+        solution_v = np.linalg.lstsq(Aa, log2a)[0]
     else:
         solution_v = np.linalg.lstsq(A, log2)[0]
 
@@ -132,7 +132,7 @@ def peak_find(image,
 
     # image dimension sizes, used for loop through image pixels
     m, n = get_data_shape(image)
-
+    print (m, n)
     big = get_end_search(image, end_search)
 
     # Create blank arrays.
@@ -151,10 +151,11 @@ def peak_find(image,
     if progress_object is not None:
         progress_object.set_title("Identifying Image Peaks...")
         progress_object.set_position(0)
-    for i in range(test_box_padding , m - ( test_box_padding)):
-        currentStrip = input_offset[ i - test_box_padding : i + test_box_padding]
-        for j in range( test_box_padding, n - ( test_box_padding)):
-            I = currentStrip[:, j - test_box_padding : j + test_box_padding]
+
+    for i in range( test_box_padding, n - ( test_box_padding)):
+        currentStrip = input_offset[ i - test_box_padding : i + (test_box_padding + 1)]
+        for j in range(test_box_padding + 1, m - ( test_box_padding + 1)):
+            I = currentStrip[:, j - test_box_padding : j + test_box_padding + 1]
             y, x, height, spread = fit_block(I, base_axis)
             ys[i, j] = y
             xs[i, j] = x
