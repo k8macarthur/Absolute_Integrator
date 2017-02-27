@@ -36,7 +36,8 @@ def Integrate(img, points, maxRadius='Auto'):
 
     pointRecord = np.zeros_like(img)
     distanceLog = np.zeros_like(points[0])
-    inegratedIntensity =
+    inegratedIntensity = np.zeros_like(distanceLog)
+    intensityRecord = np.zeros_like(img)
 
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
@@ -54,6 +55,9 @@ def Integrate(img, points, maxRadius='Auto'):
                 pointRecord[i][j] = minIndex + 1
 
     for i in range(points.shape[0]):
-        currentMask = pointRecord == i+1
+        currentMask = (pointRecord == i+1)
         currentFeature = curentMask * img
-        integratedIntensity[i]
+        integratedIntensity[i] = sum(sum(currentFeature))
+        intensityRecord += currentFeature
+
+    return (integratedIntensity, intensityRecord)
