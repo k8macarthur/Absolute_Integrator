@@ -1,19 +1,19 @@
 # next few lines automatically collect modules for whatever methods you've implemented.
 __all__ = ['ranger', 'template_match']
 # Don't modify the line above, or this line!
-#import automodinit
-#automodinit.automodinit(__name__, __file__, globals())
-#del automodinit
-from Absolute_Integrator.peak_finding import ranger
+import automodinit
+automodinit.automodinit(__name__, __file__, globals())
+del automodinit
+#from Absolute_Integrator.peak_finding import ranger
 # OK to modify from here down.
 # create a dict of our modules to show what options are available to people
-#__methods = dict()
-#for module in __all__:
-#    __methods[module] = eval(module)
-#del module
+__methods = dict()
+for module in __all__:
+    __methods[module] = eval(module)
+del module
 
 # default peak finding method is ranger.
-default_method = ranger
+default_method = "Ranger"
 
 #def list_methods():
 #    return __methods.keys()
