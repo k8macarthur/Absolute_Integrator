@@ -39,8 +39,28 @@ def get_data_shape(image):
     return m, n
 
 def get_trial_size(image, best_size="auto"):
-    """ TODO: automatically estimate best box size """
-    return 19
+
+    """ TODO: automatically estimate best box size
+    peak_find requires this list of inputs, check which ones need to be defined
+    properly for trial_size
+                  (image,
+                  best_size="auto",
+                  refine_positions=False,
+                  sensitivity_threshold=33,
+                  start_search=3,
+                  end_search="auto",
+                  progress_object=None):"""
+    big = get_end_search(image, end_search)
+    k = np.zeros(1, (int(round(big-3/2)) +1))
+    if best_size = "auto":
+        for trialSize in range(3, len(k), 2):
+            peaks = peak_find(image, trialSize)
+            total_features = len(peaks[0])
+            k[(trialSize-1)/2] = total_features
+        k_diff = gradient(k)
+    else: 
+
+    return best_size
 
 def get_end_search(image, end_search="auto"):
     im_dim = image.shape
@@ -117,15 +137,29 @@ def peak_find(image,
               end_search="auto",
               progress_object=None):
     """
+    A one-line summary needed to explain what function does.
+
+    Several sentances providing extended description.
 
     Parameters
     ----------
+    image
+    best_size :
     refine_position : bool
         ddf
+    sensitivity_threshold :
+    start_search :
+    end_search :
+    progress_object :
+
+    Returns
+    -------
+    list: x, y coordinates of peak location.
+
+    Examples
+    --------
 
     """
-    # TODO: best_size needs its auto-estimation routine
-    trial_size = get_trial_size(best_size)
 
     # Removes slowly varying background from image to simplify Gaussian fitting.
     input_offset = white_tophat(image, 2*trial_size)
@@ -170,4 +204,7 @@ def peak_find(image,
     # normalize fitted Gaussian widths
     spreads = spreads / trial_size
     offset_radii = np.sqrt(ys**2 + xs**2)  # Calculate offset radii.
+
     return filter_peaks(heights, spreads, offset_radii, trial_size, sensitivity_threshold)
+
+def ranger()
