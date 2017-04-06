@@ -85,7 +85,6 @@ def get_trial_size(image,
                             'px. Total number of atoms is',
                             k[Index])
                         break
-                        return size_axis[Index]
 
             elif trialSize >= 13:#value of 13 gives minimum 4 unique points for cubic fitting
                 fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
@@ -101,7 +100,6 @@ def get_trial_size(image,
                             'px. Total number of atoms is',
                             k[Index])
                         break
-                        return size_axis[Index]
 
             elif trialSize >= 11:#value of 11 gives minimum 3 unique points for quadratic fitting
                 fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
@@ -117,7 +115,6 @@ def get_trial_size(image,
                             'px. Total number of atoms is',
                             k[Index])
                         break
-                        return size_axis[Index]
 
             else:
                 #This 'else' statement allows a gradient based match to be
@@ -125,6 +122,8 @@ def get_trial_size(image,
                 #fitting method above, but does not have the ability to teminate
                 #the loop.
                 #[~, Index] = max(k_diff)
+
+    best_size = size_axis[Index]
     if best_size == big:
         warnings.warn('Upper test-box size limit reached. Considering \
         increasing upper limit and running again.')
