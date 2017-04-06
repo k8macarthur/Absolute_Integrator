@@ -38,9 +38,21 @@ def get_data_shape(image):
     m, n = im_dim
     return m, n
 
-def get_trial_size(image):
+def get_trial_size(image,
+                  sensitivity_threshold=33,
+                  start_search=3,
+                  end_search='auto'):
 
-    """ TODO: automatically estimate best box size
+    """ Autotmatically find best-size for feature spacing.
+
+    Best size is found by interatively trying every possible trial_size and
+    calculating how many features this results in. For a crystalline image there
+    will be a plateau in the graph of trial_size vs number of features detected
+    the plateau loaction is calculated and returned as the best_size.
+
+    Parameters
+    ----------
+    TODO: automatically estimate best box size
     peak_find requires this list of inputs, check which ones need to be defined
     properly for trial_size
                   (image,
@@ -176,7 +188,7 @@ def filter_peaks(normalized_heights, spread, offset_radii, trial_size, sensitivi
 
 
 def peak_find(image,
-              best_size="auto",
+              best_size,
               refine_positions=False,
               sensitivity_threshold=33,
               start_search=3,
@@ -189,8 +201,15 @@ def peak_find(image,
 
     Parameters
     ----------
-    image
-    best_size :
+    image: np.array
+    Peak_find assumes a dark-field image where features are white and
+    background is black.
+    *Note: If you wish to use this function on bright-field images simply
+    invert the image before using the function.
+    best_size :  int
+    An odd integer 3 or larger which is smaller than the width of the image.
+    If this is unknown the get_trial_size() function needs to be run to
+    determine the best feature spacing.
     refine_position : bool
         ddf
     sensitivity_threshold :
