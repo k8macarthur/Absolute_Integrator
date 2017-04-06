@@ -9,7 +9,7 @@ import math
 options = {
     "best_size":{"purpose":"The estimate of the peak size, in pixels.  If 'auto', attempts to determine automatically.  Otherwise, this should be an integer.",
                  "default":"auto"},
-    "refine_positions":{"purpose":"TODO",
+    "refine_positions":{"purpose":"Improve peak location accuracy to sub-pixel accuracy.",
                         "default":False},
     "sensitivity_threshold":{"purpose":"TODO",
                              "default":0.34},
@@ -52,22 +52,21 @@ def get_trial_size(image,
 
     Parameters
     ----------
-    TODO: automatically estimate best box size
-    peak_find requires this list of inputs, check which ones need to be defined
-    properly for trial_size
-                  (image,
-                  best_size="auto",
-                  refine_positions=False,
-                  sensitivity_threshold=33,
-                  start_search=3,
-                  end_search="auto",
-                  progress_object=None):"""
+    image:
+    sensitivity_threshold:
+    start_search:
+    end_search: {'Auto'}
+
+    Returns
+    -------
+    best_size: int
+    For use in the full peak finding routine."""
 
     big = get_end_search(image, end_search)
     k = np.zeros(1, (int(round(big-3/2)) +1))
     size_axis = range(3, big, 2)
         for trialSize in range(3, len(k), 2):
-            peaks = peak_find(image, best_size=trialSize)
+            peaks = feature_find(image, best_size=trialSize)
             total_features = len(peaks[0])
             k[(trialSize-1)/2] = total_features
             k_diff = gradient(k, 2)
@@ -187,9 +186,8 @@ def filter_peaks(normalized_heights, spread, offset_radii, trial_size, sensitivi
 
 
 
-def peak_find(image,
+def feature_find(image,
               best_size,
-              refine_positions=False,
               sensitivity_threshold=33,
               start_search=3,
               end_search="auto",
@@ -210,8 +208,6 @@ def peak_find(image,
     An odd integer 3 or larger which is smaller than the width of the image.
     If this is unknown the get_trial_size() function needs to be run to
     determine the best feature spacing.
-    refine_position : bool
-        ddf
     sensitivity_threshold :
     start_search :
     end_search :
@@ -272,4 +268,50 @@ def peak_find(image,
 
     return filter_peaks(heights, spreads, offset_radii, trial_size, sensitivity_threshold)
 
-def ranger()
+def peak_find((image,
+                best_size="auto",
+                refine_positions=False,
+                sensitivity_threshold=33,
+                start_search=3,
+                end_search="auto",
+                progress_object=None):
+    """
+    Full wrapper ranger function which estimates best_size for feature spacings,
+    carryings out peak-finding, peak refinement and allows addition or removal
+    of stray peaks.
+
+    Parameters
+    ----------
+    image: np.array
+    Peak_find assumes a dark-field image where features are white and
+    background is black.
+    *Note: If you wish to use this function on bright-field images simply
+    invert the image before using the function.
+    best_size :  {Auto} int
+    An odd integer 3 or larger which is smaller than the width of the image.
+    If this is unknown the get_trial_size() function needs to be run to
+    determine the best feature spacing.
+    refine_position : bool
+        ddf
+    sensitivity_threshold :
+    start_search :
+    end_search :
+    progress_object :
+
+    Returns
+    -------
+    list: x, y coordinates of peak location.
+
+    Examples
+    --------
+
+    """
+    if best_size =="auto":
+        best_size = get_trial_size(image,
+                                    sensitivity_threshold,
+                                    start_search,
+                                    end_search)
+    peak_find(image, best_size, offset_radii, best_size, sensitivity_threshold)
+    if refine_positions == False:
+        return
+    else:
