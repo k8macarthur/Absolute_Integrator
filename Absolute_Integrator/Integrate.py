@@ -1,7 +1,8 @@
 import numpy as np
 
-def Integrate(img, points, maxRadius='Auto'):
-    """Given an image a set of points and a maximum outer radius,
+def Integrate(img, points, maxRadius='Auto',
+              pixelArea=None):
+    """Given an image, a set of points and a maximum outer radius,
     this function integrates the voronoi cell surround each point.
 
     Parameters
@@ -17,6 +18,10 @@ def Integrate(img, points, maxRadius='Auto'):
         This allows analysis of a surface and particles.
         If 'max_radius' is left as 'Auto' then it will be set to the largest
         dimension in the image.
+    pixelArea: float
+        If the pixelArea is supplied the integrated intensities arre multiplied,
+        by this area to allow cross-sections to be extracted fromt the
+        integrated intensities.
 
     Returns
     -------
@@ -31,18 +36,19 @@ def Integrate(img, points, maxRadius='Auto'):
     """
     #Setting max_radius to the width of the image, if none is set.
 
-    if maxRadius='Auto':
+if maxRadius=='Auto':
         maxRadius = max(img.shape)
 
     pointRecord = np.zeros_like(img)
     distanceLog = np.zeros_like(points[0])
-    inegratedIntensity = np.zeros_like(distanceLog)
+    integratedIntensity = np.zeros_like(points[0])
     intensityRecord = np.zeros_like(img)
+    currentFeature = np.zeros_like(img)
 
     for i in range(img.shape[0]):
         for j in range(img.shape[1]):
             #For every pixel the distance to all points must be calculated.
-            distance_log = (points[0]-i)^2 + (points[1]-j)^2)^0.5
+            distance_log = ((points[0]-float(i))**2 + (points[1]-float(j))**2)**0.5
 
             # Next for that pixel the minimum distance to and point should be
             # checked and discarded if too large:
@@ -53,11 +59,16 @@ def Integrate(img, points, maxRadius='Auto'):
                 pointRecord[i][j] = 0
             else:
                 pointRecord[i][j] = minIndex + 1
-
-    for i in range(points.shape[0]):
-        currentMask = (pointRecord == i+1)
-        currentFeature = curentMask * img
+    for i in range(points[0].shape[0]):
+        mask = i + 1
+        currentMask = (pointRecord == mask)
+        currentFeature = currentMask * img
         integratedIntensity[i] = sum(sum(currentFeature))
-        intensityRecord += currentFeature
+        intensityRecord += currentMask * integratedIntensity[i]
 
-    return (integratedIntensity, intensityRecord)
+    if pixelArea != None:
+        #If a pixelArea is included this is incorporated into the integration.
+        integratedIntensity *= pixelArea
+        intensityRecord *= pixelArea
+        #TODO Sort out units for this section?
+    return (integratedIntensity, intensityRecord, pointRecord)
