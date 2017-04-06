@@ -38,7 +38,7 @@ def get_data_shape(image):
     m, n = im_dim
     return m, n
 
-def get_trial_size(image, best_size="auto"):
+def get_trial_size(image):
 
     """ TODO: automatically estimate best box size
     peak_find requires this list of inputs, check which ones need to be defined
@@ -50,15 +50,61 @@ def get_trial_size(image, best_size="auto"):
                   start_search=3,
                   end_search="auto",
                   progress_object=None):"""
+
     big = get_end_search(image, end_search)
     k = np.zeros(1, (int(round(big-3/2)) +1))
-    if best_size = "auto":
+    size_axis = range(3, big, 2)
         for trialSize in range(3, len(k), 2):
-            peaks = peak_find(image, trialSize)
+            peaks = peak_find(image, best_size=trialSize)
             total_features = len(peaks[0])
             k[(trialSize-1)/2] = total_features
-        k_diff = gradient(k)
-    else: 
+            k_diff = gradient(k, 2)
+
+            if trialSize >= 15: #value of 15 gives minimum 5 unique points for quartic fitting
+                fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
+                                            math.log(-1*(k_diff[1:(trialSize-5)/2])),
+                                            4)
+                poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+                (gradientLock, Index) = min((v, i) for i, v in enumerate(poly)
+                #Some conditional statements to end the search.
+                if (((trialSize-1)/2) > 1.25*Index
+                    and math.log(-1*k_diff[1:((trialSize-5)/2)]) > gradientLock*np.log(10):
+                        print('Optimum feature spacing determined at',
+                            size_axis[Index],
+                            'px. Total number of atoms is',
+                            k[Index])
+                        return size_axis[Index]
+
+            if trialSize >= 13:#value of 13 gives minimum 4 unique points for cubic fitting
+                fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
+                                            math.log(-1*(k_diff[1:(trialSize-5)/2])),
+                                            3)
+                poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+                (gradientLock, Index) = min((v, i) for i, v in enumerate(poly)
+                #Some conditional statements to end the search.
+                if (((trialSize-1)/2) > 1.25*Index
+                    and math.log(-1*k_diff[1:((trialSize-5)/2)]) > gradientLock*np.log(10):
+                        print('Optimum feature spacing determined at',
+                            size_axis[Index],
+                            'px. Total number of atoms is',
+                            k[Index])
+                        return size_axis[Index]
+
+            if trialSize >= 11:#value of 11 gives minimum 3 unique points for quadratic fitting
+                fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
+                                            math.log(-1*(k_diff[1:(trialSize-5)/2])),
+                                            2)
+                poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+                (gradientLock, Index) = min((v, i) for i, v in enumerate(poly)
+                #Some conditional statements to end the search.
+                if (((trialSize-1)/2) > 1.25*Index
+                    and math.log(-1*k_diff[1:((trialSize-5)/2)]) > gradientLock*np.log(10):
+                        print('Optimum feature spacing determined at',
+                            size_axis[Index],
+                            'px. Total number of atoms is',
+                            k[Index])
+                        return size_axis[Index]
+
 
     return best_size
 
