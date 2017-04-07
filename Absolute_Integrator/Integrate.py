@@ -1,6 +1,6 @@
 import numpy as np
 
-def Integrate(img, points, maxRadius='Auto',
+def integrate(img, points, maxRadius='Auto',
               pixelArea=None):
     """Given an image, a set of points and a maximum outer radius,
     this function integrates the voronoi cell surround each point.
@@ -36,7 +36,7 @@ def Integrate(img, points, maxRadius='Auto',
     """
     #Setting max_radius to the width of the image, if none is set.
 
-if maxRadius=='Auto':
+    if maxRadius=='Auto':
         maxRadius = max(img.shape)
 
     pointRecord = np.zeros_like(img)

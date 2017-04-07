@@ -4,7 +4,7 @@ from scipy.ndimage.morphology import binary_erosion
 from scipy.ndimage.morphology import white_tophat
 from scipy.ndimage.filters import gaussian_filter
 import math
-from Absolute_Integrator.peak_finding.UI.py import RoiPoint
+from Absolute_Integrator.peak_finding.UI import RoiPoint
 
 # dictionary describing options available to tune this algorithm
 options = {
@@ -66,63 +66,64 @@ def get_trial_size(image,
     big = get_end_search(image, end_search)
     k = np.zeros(1, (int(round(big-3/2)) +1))
     size_axis = range(3, big, 2)
-        for trialSize in range(3, len(k), 2):
-            peaks = feature_find(image, best_size=trialSize)
-            total_features = len(peaks[0])
-            k[(trialSize-1)/2] = total_features
-            k_diff = gradient(k, 2)
+    for trialSize in range(3, len(k), 2):
+        peaks = feature_find(image, best_size=trialSize)
+        total_features = len(peaks[0])
+        k[(trialSize-1)/2] = total_features
+        k_diff = gradient(k, 2)
+        print(k_diff)
 
-            if trialSize >= 15: #value of 15 gives minimum 5 unique points for quartic fitting
-                fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
-                                            math.log(-1*(k_diff[1:(trialSize-5)/2])),
-                                            4)
-                poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
-                (gradientLock, Index) = min((v, i) for i, v in enumerate(poly)
-                #Some conditional statements to end the search.
-                if (((trialSize-1)/2) > 1.25*Index
-                    and math.log(-1*k_diff[1:((trialSize-5)/2)]) > gradientLock*np.log(10):
-                        print('Optimum feature spacing determined at',
-                            size_axis[Index],
-                            'px. Total number of atoms is',
-                            k[Index])
-                        break
+        if trialSize >= 15: #value of 15 gives minimum 5 unique points for quartic fitting
+            fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
+                                        math.log(-1*(k_diff[1:(trialSize-5)/2])),
+                                        4)
+            poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+            (gradientLock, Index) = min((v, i) for i, v in enumerate(poly))
+            #Some conditional statements to end the search.
+            if (math.log(-k_diff[0][int((trialSize-5)/2)]) > gradientLock*np.log(10)
+                    and (trialSize-1)/2 > 1.25*Index):
+                print('Optimum feature spacing determined at',
+                       size_axis[0][Index],
+                       'px. Total number of atoms is',
+                       k[Index])
+                break
 
-            elif trialSize >= 13:#value of 13 gives minimum 4 unique points for cubic fitting
-                fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
-                                            math.log(-1*(k_diff[1:(trialSize-5)/2])),
-                                            3)
-                poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
-                (gradientLock, Index) = min((v, i) for i, v in enumerate(poly)
-                #Some conditional statements to end the search.
-                if (((trialSize-1)/2) > 1.25*Index
-                    and math.log(-1*k_diff[1:((trialSize-5)/2)]) > gradientLock*np.log(10):
-                        print('Optimum feature spacing determined at',
-                            size_axis[Index],
-                            'px. Total number of atoms is',
-                            k[Index])
-                        break
+        elif trialSize >= 13:#value of 13 gives minimum 4 unique points for cubic fitting
+            fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
+                                        math.log(-1*(k_diff[1:(trialSize-5)/2])),
+                                        3)
+            poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+            (gradientLock, Index) = min((v, i) for i, v in enumerate(poly))
+            #Some conditional statements to end the search.
+            if (math.log(-k_diff[0][int((trialSize-5)/2)]) > gradientLock*np.log(10)
+                    and (trialSize-1)/2 > 1.25*Index):
+                    print('Optimum feature spacing determined at',
+                        size_axis[Index],
+                        'px. Total number of atoms is',
+                        k[Index])
+                    break
 
-            elif trialSize >= 11:#value of 11 gives minimum 3 unique points for quadratic fitting
-                fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
-                                            math.log(-1*(k_diff[1:(trialSize-5)/2])),
-                                            2)
-                poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
-                (gradientLock, Index) = min((v, i) for i, v in enumerate(poly)
-                #Some conditional statements to end the search.
-                if (((trialSize-1)/2) > 1.25*Index
-                    and math.log(-1*k_diff[1:((trialSize-5)/2)]) > gradientLock*np.log(10):
-                        print('Optimum feature spacing determined at',
-                            size_axis[Index],
-                            'px. Total number of atoms is',
-                            k[Index])
-                        break
+        elif trialSize >= 11:#value of 11 gives minimum 3 unique points for quadratic fitting
+            fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
+                                        math.log(-1*(k_diff[1:(trialSize-5)/2])),
+                                        2)
+            poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+            (gradientLock, Index) = min((v, i) for i, v in enumerate(poly))
+            #Some conditional statements to end the search.
+            if (math.log(-k_diff[0][int((trialSize-5)/2)]) > gradientLock*np.log(10)
+                    and (trialSize-1)/2 > 1.25*Index):
+                    print('Optimum feature spacing determined at',
+                        size_axis[Index],
+                        'px. Total number of atoms is',
+                        k[Index])
+                    break
 
-            else:
+        else:
                 #This 'else' statement allows a gradient based match to be
                 #calculated when insufficient unique points exist for quadratic
                 #fitting method above, but does not have the ability to teminate
                 #the loop.
-                #[~, Index] = max(k_diff)
+            Index = n.index(max(k_diff))
 
     best_size = size_axis[Index]
     if best_size == big:
@@ -197,7 +198,6 @@ def filter_peaks(normalized_heights, spread, offset_radii, trial_size, sensitivi
     return np.vstack((y,x)).T  # Extract the locations of the identified features.
 
 
-
 def feature_find(image,
               best_size,
               sensitivity_threshold=33,
@@ -236,7 +236,6 @@ def feature_find(image,
 
     # Removes slowly varying background from image to simplify Gaussian fitting.
     input_offset = white_tophat(image, 2*trial_size)
-
     # image dimension sizes, used for loop through image pixels
     m, n = get_data_shape(image)
     #print (m, n)
@@ -280,7 +279,7 @@ def feature_find(image,
 
     return filter_peaks(heights, spreads, offset_radii, trial_size, sensitivity_threshold)
 
-def peak_find((image,
+def peak_find(image,
                 best_size="auto",
                 refine_positions=False,
                 sensitivity_threshold=33,
@@ -336,3 +335,4 @@ def peak_find((image,
     if refine_positions == False:
         return peaks
     else:
+        return peaks
