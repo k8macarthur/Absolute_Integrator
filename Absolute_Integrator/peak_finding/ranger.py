@@ -63,9 +63,10 @@ def get_trial_size(image,
     best_size: int
     For use in the full peak finding routine."""
 
-    big = get_end_search(image, end_search)
-    k = np.zeros(1, (int(round(big-3/2)) +1))
+    big = int(get_end_search(image, end_search))
+    k = np.zeros((1, int(round((big-3)/2)) +1))
     size_axis = range(3, big, 2)
+    Index = 0
     for trialSize in range(3, len(k), 2):
         peaks = feature_find(image, best_size=trialSize)
         total_features = len(peaks[0])
@@ -199,7 +200,7 @@ def filter_peaks(normalized_heights, spread, offset_radii, trial_size, sensitivi
 
 
 def feature_find(image,
-              best_size,
+              trial_size,
               sensitivity_threshold=33,
               start_search=3,
               end_search="auto",
