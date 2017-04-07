@@ -15,28 +15,28 @@ del module
 # default peak finding method is ranger.
 default_method = "Ranger"
 
-#def list_methods():
-#    return __methods.keys()
+def list_methods():
+    return __methods.keys()
 
-#def list_options(method):
-#    """
-#    List the available options for a given peak finding routine.
-#
-#    Parameters:
-#    -----------
-#    method : string
-#         The string identifier of the method to show options for.  Case insensitive. To show
-#         all available methods, call the list_methods function.
-#
-#    Returns:
-#    dict : keys are options, values are descriptions of those options.
-#    """
-#    method = method.lower()
-#    if method in __methods:
-#        return __methods[method].options
-#    else:
-#        raise ValueError("Peak finding method {:s} not recognized.  Available methods: {:s}".format(
-#            method, str(list_methods())))
+def list_options(method):
+    """
+    List the available options for a given peak finding routine.
+
+    Parameters:
+    -----------
+    method : string
+         The string identifier of the method to show options for.  Case insensitive. To show
+         all available methods, call the list_methods function.
+
+    Returns:
+    dict : keys are options, values are descriptions of those options.
+    """
+    method = method.lower()
+    if method in __methods:
+        return __methods[method].options
+    else:
+        raise ValueError("Peak finding method {:s} not recognized.  Available methods: {:s}".format(
+            method, str(list_methods())))
 
 def peak_find(image, method=default_method, **options):
     """
@@ -60,10 +60,10 @@ def peak_find(image, method=default_method, **options):
         coordinate extraction routines.
     """
     # look up which method to use from the dict of methods
-#    method = method.lower()
-#    if method in __methods:
-#        method = __methods[method]
-#    else:
-#        raise ValueError("Peak finding method {:s} not recognized.  Available methods: {:s}".format(
-#            method, str(list_methods())))
+    method = method.lower()
+    if method in __methods:
+        method = __methods[method]
+    else:
+        raise ValueError("Peak finding method {:s} not recognized.  Available methods: {:s}".format(
+            method, str(list_methods())))
     return ranger.peak_find(image, **options)

@@ -4,6 +4,7 @@ from scipy.ndimage.morphology import binary_erosion
 from scipy.ndimage.morphology import white_tophat
 from scipy.ndimage.filters import gaussian_filter
 import math
+from Absolute_Integrator.peak_finding.UI.py import RoiPoint
 
 # dictionary describing options available to tune this algorithm
 options = {
