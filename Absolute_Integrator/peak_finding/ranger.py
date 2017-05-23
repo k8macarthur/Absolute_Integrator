@@ -64,24 +64,26 @@ def get_trial_size(image,
     For use in the full peak finding routine."""
 
     big = int(get_end_search(image, end_search))
-    k = np.zeros((1, int(round((big-3)/2)) +1))
+    k = np.zeros((int(round((big-3)/2) + 1)))
     size_axis = range(3, big, 2)
     Index = 0
+    print("Starting trialSize search...")
     for trialSize in range(3, len(k), 2):
+        print("Trialling size", trialSize)
         peaks = feature_find(image, best_size=trialSize)
-        total_features = len(peaks[0])
+        total_features = len(peaks)
         k[(trialSize-1)/2] = total_features
-        k_diff = gradient(k, 2)
-        print(k_diff)
+        k_diff = np.gradient(k, 2)
+        fit_range = int(round((trialSize-5)/2))
 
         if trialSize >= 15: #value of 15 gives minimum 5 unique points for quartic fitting
-            fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
-                                        math.log(-1*(k_diff[1:(trialSize-5)/2])),
+            fittedGradient = np.polyfit(size_axis[1:fit_range],
+                                        np.log(-1*(k_diff[1:fit_range])),
                                         4)
-            poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+            poly = np.polyval(fittedGradient, size_axis[1:fit_range])
             (gradientLock, Index) = min((v, i) for i, v in enumerate(poly))
             #Some conditional statements to end the search.
-            if (math.log(-k_diff[0][int((trialSize-5)/2)]) > gradientLock*np.log(10)
+            if (math.log(-k_diff[fit_range]) > gradientLock*np.log(10)
                     and (trialSize-1)/2 > 1.25*Index):
                 print('Optimum feature spacing determined at',
                        size_axis[0][Index],
@@ -90,13 +92,13 @@ def get_trial_size(image,
                 break
 
         elif trialSize >= 13:#value of 13 gives minimum 4 unique points for cubic fitting
-            fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
-                                        math.log(-1*(k_diff[1:(trialSize-5)/2])),
+            fittedGradient = np.polyfit(size_axis[1:fit_range],
+                                        np.log(-1*(k_diff[1:fit_range])),
                                         3)
-            poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+            poly = np.polyval(fittedGradient, size_axis[1:fit_range])
             (gradientLock, Index) = min((v, i) for i, v in enumerate(poly))
             #Some conditional statements to end the search.
-            if (math.log(-k_diff[0][int((trialSize-5)/2)]) > gradientLock*np.log(10)
+            if (math.log(-k_diff[fit_range]) > gradientLock*np.log(10)
                     and (trialSize-1)/2 > 1.25*Index):
                     print('Optimum feature spacing determined at',
                         size_axis[Index],
@@ -105,13 +107,14 @@ def get_trial_size(image,
                     break
 
         elif trialSize >= 11:#value of 11 gives minimum 3 unique points for quadratic fitting
-            fittedGradient = np.polyfit(size_axis[1:((trialSize-5)/2)],
-                                        math.log(-1*(k_diff[1:(trialSize-5)/2])),
+            fittedGradient = np.polyfit(size_axis[1:fit_range],
+                                        np.log(-1*(k_diff[1:fit_range])),
                                         2)
-            poly = np.polyval(fittedGradient, size_axis[1:((trialSize-5)/2)])
+            poly = np.polyval(fittedGradient, size_axis[1:fit_range])
             (gradientLock, Index) = min((v, i) for i, v in enumerate(poly))
             #Some conditional statements to end the search.
-            if (math.log(-k_diff[0][int((trialSize-5)/2)]) > gradientLock*np.log(10)
+            print(-k_diff[fit_range])
+            if (math.log(-k_diff[fit_range]) > gradientLock*np.log(10)
                     and (trialSize-1)/2 > 1.25*Index):
                     print('Optimum feature spacing determined at',
                         size_axis[Index],
@@ -124,7 +127,7 @@ def get_trial_size(image,
                 #calculated when insufficient unique points exist for quadratic
                 #fitting method above, but does not have the ability to teminate
                 #the loop.
-            Index = n.index(max(k_diff))
+            Index = k_diff.tolist().index(max(k_diff))
 
     best_size = size_axis[Index]
     if best_size == big:
@@ -181,18 +184,18 @@ def filter_peaks(normalized_heights, spread, offset_radii, trial_size, sensitivi
 
     # Create search metric and screen impossible peaks:
     search_record = normalized_heights / offset_radii
-    search_record /= 100.0
     search_record[search_record > 1] = 1
-    search_record[spread < 0.5] = 0       # Invalidates negative Gaussian widths.
+    search_record[search_record < 0] = 0
+    search_record[spread < 0.05] = 0       # Invalidates negative Gaussian widths.
     search_record[spread > 1] = 0          # Invalidates Gaussian widths greater than a feature spacing.
     search_record[offset_radii > 1] = 0    # Invalidates Gaussian widths greater than a feature spacing.
     kernel = int(np.round(trial_size/3))
     if kernel % 2 == 0:
         kernel += 1
-    search_record = scipy.signal.medfilt2d(search_record, kernel)  # Median filter to strip impossibly local false-positive features.
+    # Median filter to strip impossibly local false-positive features.
+    search_record = scipy.signal.medfilt2d(search_record, kernel_size = kernel)
     search_record[search_record < sensitivity_threshold ] = 0   # Collapse improbable features to zero likelyhood.
     search_record[search_record >= sensitivity_threshold ] = 1  # Round likelyhood of genuine features to unity.
-
     # Erode regions of likely features down to points.
     search_record = binary_erosion(search_record, iterations=-1 )
     y, x = np.where(search_record==1)
@@ -200,8 +203,8 @@ def filter_peaks(normalized_heights, spread, offset_radii, trial_size, sensitivi
 
 
 def feature_find(image,
-              trial_size,
-              sensitivity_threshold=33,
+              best_size,
+              sensitivity_threshold=34,
               start_search=3,
               end_search="auto",
               progress_object=None):
@@ -236,7 +239,7 @@ def feature_find(image,
     """
 
     # Removes slowly varying background from image to simplify Gaussian fitting.
-    input_offset = white_tophat(image, 2*trial_size)
+    input_offset = white_tophat(image, 2*best_size)
     # image dimension sizes, used for loop through image pixels
     m, n = get_data_shape(image)
     #print (m, n)
@@ -250,7 +253,7 @@ def feature_find(image,
 
 
     # Half of the trial size, equivalent to the border that will not be inspected.
-    test_box_padding = int(( trial_size - 1 ) / 2.)
+    test_box_padding = int(( best_size - 1 ) / 2.)
 
     # Coordinate set for X and Y fitting.
     base_axis = np.arange(-test_box_padding, test_box_padding+1., dtype=np.float32)
@@ -270,15 +273,14 @@ def feature_find(image,
             spreads[i, j] = spread
 
             if progress_object is not None:
-                percentage_refined = (((trial_size-3.)/2.) / ((big-1.)/2.)) +  (((i-test_box_padding) / (m - 2*test_box_padding)) / (((big-1)/2)))  # Progress metric when using a looping peak-finding waitbar.
+                percentage_refined = (((best_size-3.)/2.) / ((big-1.)/2.)) +  (((i-test_box_padding) / (m - 2*test_box_padding)) / (((big-1)/2)))  # Progress metric when using a looping peak-finding waitbar.
                 progress_object.set_position(percentage_refined)
     # normalize peak heights
     heights = heights / ( np.max(input_offset) - np.min(input_offset) )
     # normalize fitted Gaussian widths
-    spreads = spreads / trial_size
+    spreads = spreads / best_size
     offset_radii = np.sqrt(ys**2 + xs**2)  # Calculate offset radii.
-
-    return filter_peaks(heights, spreads, offset_radii, trial_size, sensitivity_threshold)
+    return filter_peaks(heights, spreads, offset_radii, best_size, sensitivity_threshold)
 
 def peak_find(image,
                 best_size="auto",
